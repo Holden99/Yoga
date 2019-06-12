@@ -149,77 +149,166 @@ window.addEventListener("DOMContentLoaded", function(){
         contactForm = document.getElementById('form');
 
         statusMessage.classList.add('status');
-        // Contact form
 
-    contactForm.addEventListener('submit', function(event){
-        console.log(2);
-        event.preventDefault();
-        let request = new XMLHttpRequest;
+        function sendForm(elem){
+ 
+                elem.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    elem.appendChild(statusMessage);
+                
+                    let formData = new FormData(elem);
+                    let obj = {};
+                    formData.forEach(function(value, key) {
+                        obj[key] = value;
+                    });
+                    let json = JSON.stringify(obj);
 
-        request.open('POST', 'server.php');
-        request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-
-        let formData = new FormData(contactForm);
-
-        let obj = {};
-        formData.forEach(function(value, key) {
-            obj[key] = value;
-        });
-        let json = JSON.stringify(obj);
-
-        request.send(json);
-
-        request.addEventListener('readystatechange', function(){
-            if(request.readyState<4){
-                 alert(message.loading);
-            } else if(request.readyState===4 && request.status==200){
-                alert(message.success);
-            } else{
-                alert(message.failure);
+                    
+                function postData() {
+                    return new Promise(function (resolve, reject) {
+                        let request = new XMLHttpRequest();
+                        request.open('POST', 'server.php');
+                        request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                        request.addEventListener('readystatechange', function(){
+                            if (request.readyState === 4) {
+                                if(request.status==200){
+                                    resolve();
+                                }    
+                                else {
+                                reject();
+                                
+                            }
+                        }   
+                        });
+                    
+                        request.send(json); 
+                        });
+                        
+                }
+                    function clearInput() {
+                    for (let i = 0; i < input.length; i++) {
+                        input[i].value = '';
+                    }
+                }
+                postData ()
+                    // .then (() => statusMessage.textContent = message.loading)
+                    .then (() => statusMessage.innerHTML = message.success)
+                    .catch (() => statusMessage.innerHTML = message.failure)
+                    .then (clearInput)
+                    .then (console.log(3));
+                });
             }
-        });
+            sendForm(form);
+            sendForm(contactForm);
+       
 
-        for(let i=0;i<input.length;i++){
-            input[i].value='';
+
+
+
+
+         //Slider
+    
+    let slideIndex = 1,
+        slides = document.querySelectorAll('.slider-item'),
+        prev = document.querySelector('.prev'),
+        next = document.querySelector('.next'),
+        dotsWrap = document.querySelector('.slider-dots'),
+        dots = document.querySelectorAll('.dot');
+
+    showSlides(slideIndex);
+    
+    function showSlides(n){
+        if (n>slides.length){
+            slideIndex = 1;
+        }
+        if(n<1){
+            slideIndex = slides.length;
+        }
+        slides.forEach((item)=> item.style.display='none');
+        dots.forEach((item)=>item.classList.remove('dot-active'));
+        slides[slideIndex-1].style.display = 'block';
+        dots[slideIndex-1].classList.add('dot-active');
+        
+    }
+
+    function plusSlides(n){
+        showSlides(slideIndex+=n);
+    }
+
+    function currentSlide(n){
+        showSlides(slideIndex=n);
+    }
+
+    prev.addEventListener('click', function(){
+        plusSlides(-1);
+    });
+
+    next.addEventListener('click',function(){
+        plusSlides(1);
+    });
+
+    dotsWrap.addEventListener('click', function(event){
+        for (let i=0;i<=dots.length;i++){
+            if(event.target.classList.contains('dot') && event.target == dots[i]){
+                currentSlide(i+1);
+            }
         }
     });
-    
-        // модальное окно
-    form.addEventListener('submit', function(event){
-        // чтобы при клике на кнопку страница не перезагружалась
-        event.preventDefault();
-        form.appendChild(statusMessage);
 
-        let request = new XMLHttpRequest;
 
-        request.open('POST', 'server.php');
-       // request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-          request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+    // Calc
 
-        let formData = new FormData(form);
 
-        let obj = {};
-        formData.forEach(function(value, key) {
-            obj[key] = value;
+    let persons = document.querySelectorAll('.counter-block-input')[0],
+        restDays = document.querySelectorAll('.counter-block-input')[1],
+        place = document.getElementById('select'),
+        totalValue = document.getElementById('total'),
+        personsSum =0,
+        daysSum = 0, 
+        total = 0;
+
+        totalValue.innerHTML = 0;
+
+        persons.addEventListener('change', function(){
+            if(persons.value && restDays.value){
+                personsSum =+this.value;
+                total = (daysSum+personsSum)*4000;
+
+            if(restDays.value==''){
+                totalValue.innerHTML=0;
+            }else{
+                totalValue.innerHTML = total;
+            }
+            }else totalValue.innerHTML=0;
+            
         });
-        let json = JSON.stringify(obj);
 
-        request.send(json);
+        restDays.addEventListener('change', function(){
+            if(restDays.value && persons.value){
+                daysSum =+this.value;
+                total = (daysSum+personsSum)*4000;
+    
+                if(persons.value==''){
+                    totalValue.innerHTML=0;
+                }else{
+                    totalValue.innerHTML = total;
+                }
+            } else totalValue.innerHTML=0;
+           
+        });
 
-        request.addEventListener('readystatechange', function(){
-            if(request.readyState<4){
-                statusMessage.innerHTML = message.loading;
-            } else if(request.readyState===4 && request.status==200){
-                statusMessage.innerHTML = message.success;
-            } else{
-                statusMessage.innerHTML = message.failure;
+        place.addEventListener('change', function(){
+            if(restDays.value=='' || persons.value==''){
+                totalValue.innerHTML=0;
+            }else{
+                let a = total;
+                
+                totalValue.innerHTML= a*this.options[this.selectedIndex].value;
             }
         });
-
-        for(let i=0;i<input.length;i++){
-            input[i].value='';
-        }
     });
     
-});
+
+
+
 
